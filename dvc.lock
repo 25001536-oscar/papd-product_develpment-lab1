@@ -1,0 +1,70 @@
+schema: '2.0'
+stages:
+  preprocess:
+    cmd: python src/preprocess.py --params params.yaml
+    deps:
+    - path: data/dataset_v2.csv
+      hash: md5
+      md5: 01575123dd070088427b11ad6e4a73a4
+      size: 1898295
+    - path: params.yaml
+      hash: md5
+      md5: ce472e46ad3152adc16de56a5cc3e809
+      size: 671
+    - path: src/preprocess.py
+      hash: md5
+      md5: 91e8ca0dbc277a527cbf15ee7992417f
+      size: 2474
+    outs:
+    - path: artifacts/preprocessed.parquet
+      hash: md5
+      md5: a9a171b975f1c3fc8362885155b40417
+      size: 846007
+  train:
+    cmd: python src/train.py --params params.yaml
+    deps:
+    - path: artifacts/preprocessed.parquet
+      hash: md5
+      md5: a9a171b975f1c3fc8362885155b40417
+      size: 846007
+    - path: params.yaml
+      hash: md5
+      md5: ce472e46ad3152adc16de56a5cc3e809
+      size: 671
+    - path: src/train.py
+      hash: md5
+      md5: 48bdbb0c3c50039d42dc6fb88d750945
+      size: 2608
+    outs:
+    - path: models/best_model.joblib
+      hash: md5
+      md5: 004ab439a73cd6f24a2cc6bb5633eeac
+      size: 565866
+  evaluate:
+    cmd: python src/evaluate.py --params params.yaml
+    deps:
+    - path: artifacts/preprocessed.parquet
+      hash: md5
+      md5: a9a171b975f1c3fc8362885155b40417
+      size: 846007
+    - path: models/best_model.joblib
+      hash: md5
+      md5: 004ab439a73cd6f24a2cc6bb5633eeac
+      size: 565866
+    - path: params.yaml
+      hash: md5
+      md5: ce472e46ad3152adc16de56a5cc3e809
+      size: 671
+    - path: src/evaluate.py
+      hash: md5
+      md5: b4224fd41035180e3c525e18d1065ba7
+      size: 1495
+    outs:
+    - path: artifacts/metrics.json
+      hash: md5
+      md5: 5a77cb56e4403026b9a737212efd1322
+      size: 91
+    - path: reports/report.md
+      hash: md5
+      md5: fdd86ffade7bbfd890374eedfc4fef7b
+      size: 68

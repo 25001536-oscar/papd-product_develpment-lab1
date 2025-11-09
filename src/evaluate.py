@@ -3,7 +3,7 @@ from pathlib import Path
 import joblib
 import pandas as pd
 import numpy as np
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score, root_mean_squared_error
 from utils import load_params
 
 def load_preprocessed(target):
@@ -20,7 +20,7 @@ def main(params_path: str):
     model = joblib.load("models/best_model.joblib")
 
     preds = model.predict(X)
-    rmse = mean_squared_error(y, preds, squared=False)
+    rmse = root_mean_squared_error(y, preds)
     mae = mean_absolute_error(y, preds)
     r2 = r2_score(y, preds)
 
