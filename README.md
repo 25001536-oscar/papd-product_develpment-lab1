@@ -1,67 +1,105 @@
-# AutoML with DVC — Lab Scaffold
+# AutoML con DVC — Laboratorio 1
 
-This repository contains a minimal, reproducible AutoML-ish pipeline managed with **DVC** and **Git**. It follows a 3-stage pipeline:
+Este repositorio contiene un pipeline reproducible de tipo AutoML gestionado con **DVC** y **Git**.  
+Sigue una secuencia de tres etapas principales:
 
-1. **preprocess** — cleans and scales numeric features and stores a preprocessed parquet.
-2. **train** — runs a simple grid search across models and saves the best model.
-3. **evaluate** — evaluates the best model, writes `artifacts/metrics.json`, and a short `reports/report.md`.
+1. **preprocess** — limpia y escala las variables numéricas y guarda un archivo parquet preprocesado.  
+2. **train** — ejecuta una *grid search* entre varios modelos y guarda el mejor.  
+3. **evaluate** — evalúa el mejor modelo, genera `artifacts/metrics.json` y un breve informe en `reports/report.md`.
 
-> Dataset used by default: `data/dataset_v1.csv` (California Housing), target `MedHouseVal`.
+> Dataset utilizado por defecto: `data/dataset_v1.csv` (California Housing), columna objetivo `MedHouseVal`.
 
-## Quick start
+---
+
+## 🚀 Inicio rápido
 
 ```bash
-# 1) clone your repo or create a new one
+# 1) Clonar o crear el repositorio
 git init
-python -m venv .venv && source .venv/bin/activate  # (Windows: .venv\Scripts\activate)
+python -m venv .venv && source .venv/bin/activate  # (En Windows: .venv\Scripts\activate)
 pip install -r requirements.txt
 
-# 2) init DVC
+# 2) Inicializar DVC
 dvc init
 
-# 3) add data with DVC (large files should NOT be committed to git)
+# 3) Agregar el dataset inicial a DVC (no subir archivos grandes a Git)
 dvc add data/dataset_v1.csv
 git add data/dataset_v1.csv.dvc .gitignore dvc.yaml params.yaml src requirements.txt
-git commit -m "Init: DVC pipeline + dataset v1"
+git commit -m "Inicio: pipeline DVC + dataset v1"
 
-# 4) run the pipeline
+# 4) Ejecutar el pipeline completo
 dvc repro
 
-# 5) show metrics
+# 5) Mostrar las métricas obtenidas
 dvc metrics show
 ```
 
-## Evolving datasets
+---
 
-To create `dataset_v2.csv` (e.g., after cleaning or transformations), place it under `data/`, run:
+## 🧩 Uso de nuevas versiones de dataset (dataset_v2.csv)
+
+Se pueden crear y usar nuevas versiones del dataset para comparar resultados del modelo.  
+Por ejemplo, el archivo **`data/dataset_v2.csv`** incluye limpieza ligera (sin duplicados, imputers de medianas, clipping de outliers, etc.).
+
+### ➕ Agregar el nuevo dataset a DVC
 
 ```bash
 dvc add data/dataset_v2.csv
 git add data/dataset_v2.csv.dvc
-git commit -m "Dataset v2: cleaned data"
+git commit -m "Dataset v2: limpieza ligera"
 ```
 
-Then edit `params.yaml` to point to `data/dataset_v2.csv` under `dataset.path`, and re-run:
+### ⚙️ Actualizar el pipeline para usar dataset_v2
+
+Editar el archivo `params.yaml` y reemplaza la ruta del dataset:
+
+```yaml
+dataset:
+  path: data/dataset_v2.csv
+  target: MedHouseVal
+```
+
+Guardar el archivo y vuelve a ejecutar el pipeline:
 
 ```bash
 dvc repro
-dvc metrics diff  # compare metrics between Git revisions
 ```
 
-## Configuration
+### 📊 Comparar métricas entre versiones
 
-See `params.yaml` — you can set:
+Se puede comparar comparar el rendimiento entre `dataset_v1` y `dataset_v2`:
 
-- dataset path and target
-- preprocessing options (imputation, scaling)
-- list of models and their grids
-- CV folds and scoring
+```bash
+# Comparar resultados con el commit anterior
+dvc metrics diff HEAD~1
 
-## Outputs
-
-- `artifacts/preprocessed.parquet`
-- `models/best_model.joblib`
-- `artifacts/metrics.json`
-- `reports/report.md`
+# O si se usaran etiquetas
+git tag v1_dataset
+# ... luego de ejecutar con v2 ...
+git tag v2_dataset
+dvc metrics diff v1_dataset v2_dataset
 ```
 
+> ✅ Comoo opción alternativa, se puede usar DVC Experiments (`dvc exp`), probando `dataset_v2.csv` sin modificar `params.yaml`.
+
+---
+
+## ⚙️ Configuración general
+
+El archivo `params.yaml` controla los parámetros del pipeline:
+
+- Ruta y nombre del dataset (`dataset.path`)
+- Columna objetivo (`dataset.target`)
+- Opciones de preprocesamiento (imputación, escalado)
+- Lista de modelos y sus hiperparámetros
+- Número de folds para validación cruzada
+- Métrica de evaluación (por defecto: RMSE negativo)
+
+---
+
+## 📦 Salidas generadas
+
+- `artifacts/preprocessed.parquet` — dataset preprocesado  
+- `models/best_model.joblib` — mejor modelo entrenado  
+- `artifacts/metrics.json` — métricas de evaluación (RMSE, MAE, R²)  
+- `reports/report.md` — informe resumen de resultados  
